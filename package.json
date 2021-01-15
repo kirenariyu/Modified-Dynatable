@@ -1,0 +1,25 @@
+{
+  "name": "Modified-Dynatable",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "json-server": "^0.16.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "json:server": "json-server --watch data/data.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kirenariyu/Modified-Dynatable.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kirenariyu/Modified-Dynatable/issues"
+  },
+  "homepage": "https://github.com/kirenariyu/Modified-Dynatable#readme"
+}

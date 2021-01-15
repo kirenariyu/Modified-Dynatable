@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Modified Dynatable</title>
+
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+        <script src="js/jquery.dynatable.min.js"></script>
+        
+        <link rel="stylesheet" href="css/jquery.dynatable.min.css">
+    </head>
+
+    <body>
+        <div id="filterTableCon">
+            <div id="searchCon">
+                <input id="searchInput" name="searchInput" placeholder="Search" type="text" value="" autocomplete="off">
+            </div>
+            <div id="filterCon">
+                <a id="filterBtn" href="#">
+                    FILTER
+                </a>
+            </div>
+        </div>
+
+        <div id="criteriaCon">
+
+        </div>
+
+        <div id="tableCon">
+            <table id="annualPayrollTable" class="">
+                <thead class="">
+                    <tr class="">
+                        <th>EMPLOYEE ID</th>
+                        <th>LAST NAME</th>
+                        <th>FIRST NAME</th>
+                        <th>SUFFIX</th>
+                        <th>MIDDLE NAME</th>
+                        <th>DIVISION</th>
+                        <th>DEPARTMENT</th>
+                        <th>MONTHLY PAY</th>
+                        <th>BASIC SALARY</th>
+                        <th>HOLIDAY PAY</th>
+                        <th>PREMIUM & OT</th>
+                        <th>OTHER BENEFITS (BEFORE TAX)</th>
+                        <th>TOTAL TAXABLE EARNINGS</th>
+                        <th>ADJUSTMENT AFTER TAX</th>
+                        <th>OTHER BENEFITS (AFTER TAX)</th>
+                        <th>DE MINIMIS</th>
+                        <th>TOTAL NON-TAXABLE EARNINGS</th>
+                        <th colspan="3">STATUTORY DEDUCTIONS (EMPLOYEE)</th>
+                        <th>TOTAL EMPLOYEE STATUTORY</th>
+                        <th colspan="3">STATUTORY DEDUCTIONS (EMPLOYER)</th>
+                        <th>TOTAL EMPLOYER STATUTORY</th>
+                        <th>TOTAL TAX WITHHELD</th>
+                        <th>TOTAL NET</th>
+                    </tr>
+                    <tr class="">
+                        <th data-dynatable-column="emp_id"></th>
+                        <th data-dynatable-column="lname"></th>
+                        <th data-dynatable-column="fname"></th>
+                        <th data-dynatable-column="suffix"></th>
+                        <th data-dynatable-column="mname"></th>
+                        <th data-dynatable-column="division"></th>
+                        <th data-dynatable-column="department"></th>
+                        <th data-dynatable-column="monthly_pay"></th>
+                        <th data-dynatable-column="basic_salary"></th>
+                        <th data-dynatable-column="holiday_pay"></th>
+                        <th data-dynatable-column="premium_ot"></th>
+                        <th data-dynatable-column="otherben_before_tax"></th>
+                        <th data-dynatable-column="total_taxable"></th>
+                        <th data-dynatable-column="adj_after_tax"></th>
+                        <th data-dynatable-column="otherben_after_tax"></th>
+                        <th data-dynatable-column="deminimis"></th>
+                        <th data-dynatable-column="total_nontaxable"></th>
+                        <th data-dynatable-column="employee_sss">SSS</th>
+                        <th data-dynatable-column="employee_philhealth">PHILHEALTH</th>
+                        <th data-dynatable-column="employee_hdmf">HMDF</th>
+                        <th data-dynatable-column="total_employee_stat"></th>
+                        <th data-dynatable-column="employer_sss">SSS</th>
+                        <th data-dynatable-column="employer_philhealth">PHILHEALTH</th>
+                        <th data-dynatable-column="employer_hdmf">HMDF</th>
+                        <th data-dynatable-column="total_employer_stat"></th>
+                        <th data-dynatable-column="total_tax_withheld"></th>
+                        <th data-dynatable-column="total_net"></th>
+                    </tr>
+                </thead>
+                <tbody class="vertical2"></tbody>
+            </table>
+        </div>
+    </body>
+
+    <script>
+        /*
+        * Sticky long header table and table footer
+        * 
+        * TABLE STICKY LONG HEADER
+        * Add class "long-header" to table's parent <div>.
+        * 
+        * If table has sticky long header but no table footer, call stickyLongHeader.initEvents() in ready function.
+        * If with table footer but table doesn't have sticky long header, call stickyLongHeader.addFooter({ dtable: $('#') }) in ready function.
+        * If table has sticky long header and table footer, call stickyLongHeader.initEvents({ dtable: $('#') }) in ready function.
+        * 
+        * TABLE FOOTER
+        * Add classname "with-table-footer" on table's parent <div>
+        * Pass parameter containing the dtable
+        *      {
+        *          dtable: dtable
+        *      }
+        * In table header, add data-footer = "employee" / "total" / "manual"
+        *      employee    - returns total number of fetched employees
+        *      total       - computes money only column
+        *      manual      - returns number + text e.g. 10 Locked
+        * If footer not computing properly, add stickyLongHeader.computeFooter({ manual: {{ 1:{ count: '', text: '' } }} }); after table.process();
+        * For manual, pass parameter (you may add as many as you want):
+        *      { 
+        *          manual: { 
+        *              {
+        *                  1: {
+        *                      count: $().length,
+        *                      text: 'Locked'
+        *                  }
+        *              },
+        *          } 
+        *      }
+        *      number  - depending on the index of the table
+        *      count   - give the total count a column
+        */
+        var stickyLongHeader = {
+            cloneHeader: function () {
+                var container = $('.thead-table');
+                container.empty();
+                $('.long-header > table > thead').clone().appendTo(container);
+                ps2.update();
+            },
+            updateWidth: function () {
+                if (!$('.sticky-long-header > div').hasClass('freeze-long')) {
+                    var mainWidth = $('.long-header > table').width();
+                    $('.sticky-long-header').width(mainWidth);
+                    $('.sticky-long-header > div').width(mainWidth);
+                    $('.thead-table > thead > tr > th').each(function () {
+                        var theadClass = $(this).closest('tr').attr('class');
+                        if (/\s/g.test(theadClass)) {
+                            theadClass = theadClass.split(' ')[0];
+                        }
+                        var setWidth;
+                        if (theadClass == undefined) {
+                            return setWidth = $('.long-header > table > thead > tr > th:eq(' + $(this).index() + ')').width();
+                        } else {
+                            return setWidth = $('.long-header > table > thead > tr.' + theadClass + ' > th:eq(' + $(this).index() + ')').width();
+                        }
+                        $(this).width(setWidth);
+                    });
+                    ps2.update();
+                } else {
+                    $('.sticky-long-header').width($('.long-header').width());
+                    $('.sticky-long-header > div').width($('.long-header').width());
+                }
+            },
+            dragToScroll: function (tableClassContainer) {
+                $(tableClassContainer).find('table').addClass('scroll-by-mouse');
+
+                var attachment = false, lastPosition, position, difference;
+                $($(tableClassContainer).selector).on("mousedown mouseup mousemove", function (e) {
+                    if (e.type == "mousedown") attachment = true, lastPosition = [e.clientX, e.clientY];
+                    if (e.type == "mouseup") attachment = false;
+                    if (e.type == "mousemove" && attachment == true) {
+                        position = [e.clientX, e.clientY];
+                        difference = [(position[0] - lastPosition[0]), (position[1] - lastPosition[1])];
+                        $(this).scrollLeft($(this).scrollLeft() - difference[0]);
+                        $(this).scrollTop($(this).scrollTop() - difference[1]);
+                        lastPosition = [e.clientX, e.clientY];
+                    }
+                });
+
+                $(window).on("mouseup", function () {
+                    attachment = false;
+                });
+            },
+            initEvents: function (param) {
+                if ($('.long-header > table > thead').hasClass('hidden')) {
+                    $('.long-header > table > thead').removeClass('hidden');
+                }
+                if ($('.long-header > table > thead').is(':visible')) $('.long-header > table > thead').addClass('removeThead');
+                if ($('.sticky-long-header').length) $('.sticky-long-header').remove();
+
+                var parent = $('.long-header');
+                var clonedHeader = $('.long-header table').clone().addClass('thead-table').removeAttr('id');
+                var newHeader = '<div class="col-md-12 no-padding sticky-long-header"><div class="col-md-12 no-padding"></div></div>';
+
+                parent.prepend(newHeader);
+                $('.sticky-long-header > div').append(clonedHeader);
+                $('.sticky-long-header > div table tbody, .sticky-long-header > div table tfoot').remove();
+
+                $('.sticky-long-header').find('table').removeClass('tableBodyScroll2');
+
+                $('.thead-table').css('margin-top', '0px');
+                $('.long-header > table:not(.thead-table)').css('margin-top', $('.sticky-long-header').height() + 'px');
+
+
+                if (param != undefined && param.dtable != undefined) {
+                    param.dtable.on('dynatable:afterProcess', function () {
+                        stickyLongHeader.updateWidth();
+                    });
+                }
+
+                $(window).bind('scroll', function () {
+                    var header = $('.sticky-long-header');
+                    var sticky = header.offset().top - 70;
+                    if ($(window).scrollTop() >= sticky) {
+                        header.find('div').width($('.long-header').width()).addClass('freeze-long');
+                        $('.sticky-long-header > div').scrollLeft($('.long-header').scrollLeft());
+                    } else {
+                        header.find('div').removeClass('freeze-long');
+                    }
+                    stickyLongHeader.updateWidth();
+                });
+
+                $(window).bind('resize', function () {
+                    stickyLongHeader.updateWidth();
+                });
+
+                $('.thead-table > thead > tr > th').on('click', function (e) {
+                    e.preventDefault();
+                    var theadClass = $(this).closest('tr').attr('class'),
+                        copyEl;
+                    if (/\s/g.test(theadClass)) {
+                        theadClass = theadClass.split(' ')[0];
+                    }
+                    if (theadClass == undefined) {
+                        copyEl = $('.long-header > table > thead > tr > th:eq(' + $(this).index() + ')');
+                    } else {
+                        copyEl = $('.long-header > table > thead > tr.' + theadClass + ' > th:eq(' + $(this).index() + ')');
+                    }
+                    copyEl.trigger('click');
+                    var className = copyEl.attr('style');
+                    $(this).attr('style', className);
+                });
+
+                stickyLongHeader.dragToScroll('.long-header');
+
+                $('.long-header').scroll(function () {
+                    if ($('.tfoot-table').length) {
+                        $('.tfoot-table')[0].scrollLeft = this.scrollLeft;
+                        $('.sticky-long-header > div')[0].scrollLeft = this.scrollLeft;
+                    } else {
+                        $('.sticky-long-header > div')[0].scrollLeft = this.scrollLeft;
+                    }
+                });
+
+                if ($('.with-table-footer').length) {
+                    this.addFooter(param);
+                } else {
+                    $('.long-header').after('<div class="margin-top-default" id="page-nav-2">');
+                    $('#page-nav-2').append($('.long-header .dynatable-pagination-links').detach());
+                    $('#page-nav-2').append($('.long-header .dynatable-record-count').detach());
+                }
+
+                $(document).on('click', '.dynatable-pagination-links li a', function () {
+                    setTimeout(function () {
+                        stickyLongHeader.updateWidth();
+                    }, 10);
+                });
+            },
+            computeFooter: function (param) {
+                var $manual;
+                if (param != null) $manual = param.manual;
+
+                var pseudo = function () {
+                    if ($('.with-table-footer table').length > 1) return 'first-child';
+                    else return 'first-of-type';
+                };
+
+                var thTotal = $('.with-table-footer table:' + pseudo() + ' tr:last-child th').length;
+
+                if ($('.tfoot-table-2 thead tr th').length != thTotal) {
+                    for (var h = 0; h < thTotal; h++) {
+                        var elem = $('.with-table-footer table:' + pseudo() + ' tr:last-child th').eq(h);
+                        $('.tfoot-table-2 thead tr').append('<th class="' + (elem.hasClass('hidden') ? 'hidden' : '') + '" data-dynatable-column="' + elem.attr('data-dynatable-column') + '"></th>');
+                    }
+                }
+
+                for (var i = 0; i <= $('.with-table-footer table:' + pseudo() + ' tr:last-child th').length; i++) {
+                    var dataFooter = $('.with-table-footer table:' + pseudo() + ' tr:last-child th:nth-child(' + i + ')').attr('data-footer');
+                    switch (dataFooter) {
+                        case 'label':
+                            $('.tfoot-table-2 tr th:nth-child(' + i + ')').addClass('text-right').html('TOTAL:');
+                            break;
+                        case 'employee':
+                            //var empTotal = $('.dynatable-record-count').html().split(' ')[6] != undefined ? $('.dynatable-record-count').html().split(' ')[6] : $('.dynatable-record-count').html().split(' ')[3];
+                            var empTotal = $('.with-table-footer > table > tbody > tr').length;
+                            $('.tfoot-table-2 tr th:nth-child(' + i + ')').html('Total: ' + empTotal + ' Employee/s');
+                            break;
+                        case 'total':
+                            var overall = 0;
+                            $('.with-table-footer table tr td:nth-child(' + i + ')').each(function () {
+                                var total = parseFloat($(this).text().replace(/\,/g, ""));
+                                if (total != null || total != undefined) {
+                                    overall += Number(total);
+                                }
+                            });
+                            $('.tfoot-table-2 tr th:nth-child(' + i + ')').addClass('text-right').html("PHP " + overall.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,").toLocaleString());
+                            break;
+                        case 'manual':
+                            $('.tfoot-table-2 tr th:nth-child(' + i + ')').addClass('text-center').html($manual[i].count + ' ' + $manual[i].text);
+                            break;
+                        case 'manual_simulation':
+                            $('.tfoot-table-2 tr th:nth-child(' + i + ')').addClass('text-center').attr('style', 'width: 50px; min-width: 50px; max-width: 50px;').html($manual[i].count);
+                            break;
+                        case 'status_column':
+                            $('.tfoot-table-2 tr th:nth-child(' + i + ')').addClass('text-center').attr('style', 'width: 130px; min-width: 130px; max-width: 130px;').html('');
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            },
+            addFooter: function (param) {
+                var $dtable;
+                if (param != null) $dtable = param.dtable;
+                $('.with-table-footer').css({
+                    'margin-bottom': '2px',
+                    'border-bottom-left-radius': '0',
+                    'border-bottom-right-radius': '0'
+                });
+                if (!$('.tfoot-table-2').length) {
+                    $('.with-table-footer').after('<div class="dynatable-container long-footer"><table class="table dyna-theme001 tfoot-table-2"><thead><tr></tr></thead></table></div>');
+                    $('.long-footer').css('margin-top', '12px');
+                    stickyLongHeader.computeFooter(param);
+                    $('.with-table-footer').scroll(function () {
+                        $('.long-footer')[0].scrollLeft = this.scrollLeft;
+                    });
+                }
+                //$dtable.on('dynatable:afterProcess', function () {
+                //    stickyLongHeader.computeFooter(param);
+                //});
+            }
+        };
+
+        var MD = {
+            copyCriteria: function(conWidth, bodyWidth, firstCol, secondCol, param) {
+                if (!$('#criteria').length) {
+                    $('.body-content > .col-md-12').prepend('<div class="col-md-12 no-padding margin-bottom-default" id="criteria"><div class="col-md-' + conWidth + ' no-padding"></div></div>');
+                } else {
+                    $('#criteria').addClass('margin-bottom-default');
+                    $('#criteria > .col-md-' + conWidth + '').empty();
+                }
+                if ($('#advSearchModal .copy-criteria').length) {
+                    $('#advSearchModal .copy-criteria').each(function () {
+                        var parent  = $(this).find('.col-md-' + bodyWidth + ''),
+                            first   = parent.children().first(),
+                            node    = first.prop('nodeName'),
+                            values  = [], text;
+                        if (node == 'DIV' && first.hasClass('col-md-12')) {
+                            var option = parent.find('option:selected').text();
+                            var input = parent.find('.input-default').val();
+                            text = option + ' ( ' + input + ' )';
+                        } else if (node == 'DIV' && first.hasClass('col-md-5')) {
+                            if (first.children().first().prop('nodeName') == 'SELECT') {
+                                var option = parent.find('select option');
+                                if (option.length > 1) {
+                                    option.each(function () {
+                                        values.push($(this).text());
+                                    });
+                                    text = values.join(' - ');
+                                }
+                            } else {
+                                var input = parent.find('input');
+                                if (input.length > 1) {
+                                    input.each(function () {
+                                        values.push($(this).val());
+                                    });
+                                    text = values.join(' - ');
+                                }
+                            }
+                        } else if (node == 'INPUT' && first.is(':checkbox')) {
+                            text = first.is(':checked') ? 'YES' : 'NO';
+                        } else if (node == 'SELECT') {
+                            text = parent.find('select option').text();
+                        } else if (node == 'DIV' && first.hasClass('col-md-6')) {
+                            var month = parent.children().first().find('option:selected').text();
+                            var year = parent.children().last().find('option:selected').text();
+                            text = month + ' ' + year;
+                        } else {
+                            text = first.val();
+                        }
+                        if (text.replace(/[\W_]+/g, '') != '') {
+                            $('#criteria > .col-md-' + conWidth + '').append('<div class="col-md-12 margin-bottom-default copied-criteria">' +
+                                '<div class="col-md-' + firstCol + ' no-padding ff-nt2">' + $(this).find('label').text().toUpperCase() + ':</div>' +
+                                '<div class="col-md-' + secondCol + ' no-padding">' + text + '</div></div>');
+                        }
+                    });
+                } else {
+                    if (param) {
+                        for (i in param) {
+                            if (param[i] != '') {
+                                $('#criteria > .col-md-' + conWidth + '').append('<div class="col-md-12 margin-bottom-default copied-criteria">' +
+                                    '<div class="col-md-' + firstCol + ' no-padding ff-nt2">' + i + ':</div>' +
+                                    '<div class="col-md-' + secondCol + ' no-padding">' + param[i] + '</div></div>');
+                            }
+                        }
+                    }
+                }
+                if ($('#criteria .copied-criteria').length == 0) {
+                    $('#criteria').removeClass('margin-bottom-default');
+                }
+                $('#sButton').click(function () {
+                    $('#criteria').remove();
+                });
+            },
+            customCellWriter: function(column, record) {
+                var html = column.attributeWriter(record);
+                var td = '<td data-head="' + column.id + '" class="' +
+                    (MD.nonDecimalColumns.indexOf(column.id) == -1 ? 'text-right' : 'text-left') +
+                    ($('[data-dynatable-column=' + column.id + ']').is(':visible') ? '' : ' hidden');
+                if (html == null)
+                    html = '';
+                return td + '">' + html + '</td>';
+            },
+            customRowWriter: function(rowIndex, record, columns, cellWriter) {
+                var tr = '';
+                for (var i = 23, len = columns.length; i < len; i++) {
+                    if (columns[i].id != 'exclude')
+                        tr += cellWriter(columns[i], record);
+                }
+                return '<tr>' + tr + '</tr>';
+            },
+            dtable: null,
+            loadTable: function(usedSearch) {
+                // if (usedSearch) {
+                //     MD.parameter = $('#AnnualPayrollSumForm').serializeArray();
+                // } else {
+                //     MD.parameter = [{ name: "gensearch", value: $('#gensearch').val() }, { name: "row", value: 500 }]
+                // }
+                $.getJSON('http://localhost:3000/Data', MD.parameter, function(data) {
+                    MD.dtable.paginationPage.set(1);
+                    MD.dtable.settings.dataset.ajax = false;
+                    MD.dtable.records.updateFromJson({ records: data });
+                    MD.dtable.records.init();
+                    MD.dtable.process();                        
+                }).fail(function(){
+                    console.log('An error has occurred.');
+                });
+            },
+            nonDecimalColumns: ['emp_id', 'fname', 'lname', 'suffix', 'mname', 'department', 'division'],
+            parameter: [{ name: "row", value: 500 }],
+        }
+
+        $(document).ready(function() {
+            MD.dtable = $('#annualPayrollTable').bind('dynatable:init', function (e, dynatable) {
+                }).bind('dynatable:afterUpdate', function () {
+                }).dynatable({
+                    features: {
+                        paginate: true,
+                        sort: true,
+                        pushState: true,
+                        search: false,
+                        recordCount: true,
+                        perPageSelect: true
+                    },
+                    dataset: {
+                        records: [],
+                        perPageDefault: 10,
+                        perPageOptions: [10, 30, 50, 100, 300, 500, 1000]
+                    },
+                    writers: {
+                        _cellWriter: MD.customCellWriter,
+                        _rowWriter: MD.customRowWriter
+                    }
+                }).data('dynatable');
+            
+            MD.loadTable();
+        });
+    </script>
+</html>
